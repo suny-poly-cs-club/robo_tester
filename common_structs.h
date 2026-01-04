@@ -1,7 +1,7 @@
 #ifndef ROBOT_TESTER_COMMON_STRUCTS_H
 #define ROBOT_TESTER_COMMON_STRUCTS_H
 #include <string>
-#include <include/raylib.h>
+#include "include/raylib.h"
 
 struct captchaInfo{
     std::string name;

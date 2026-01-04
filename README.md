@@ -11,7 +11,7 @@ cl gdi32.lib msvcrt.lib raylib.lib winmm.lib user32.lib shell32.lib main.cpp exa
 
 #### MinGW
 ```cmd
-gcc -o main.exe .\main.cpp .\example.cpp -I include -L lib -lraylib -lgdi32 -lwinmm
+g++ -o main.exe .\main.cpp .\example.cpp -I include -L lib -lraylib -lgdi32 -lwinmm
 ```
 
 ### Linux
