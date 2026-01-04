@@ -226,7 +226,15 @@ int main(const int argc, char** argv) {
     if (!loadCaptchas(example_get_captchas())) {
         return EXIT_FAILURE;
     }
+    //call to all other work files here
 
+    if (!DirectoryExists("assets")) {//check that the assets folder is present
+        cerr << "assets directory not foud" << endl;//if not then show this error
+        const char * workingDirectory = GetWorkingDirectory();
+        string dir = workingDirectory;
+        cerr << "working directory is: "<< dir << endl;//as well as were it was looking for it
+        return EXIT_FAILURE;
+    }
 
     //process args
     //arg 0 is the executable
