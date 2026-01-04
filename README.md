@@ -27,5 +27,5 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib_l
 ### Mac
 You will need xcode build tools installed as usual
 ```sh
-clang++ -framework CoreVideo -framework IOKit -framework Cocoa -framework GLUT -framework OpenGL lib_x/libraylib.a main.cpp example.cpp -o robo_test
+clang++ -framework Cocoa -framework IOKit lib_x/libraylib.a main.cpp example.cpp -o robo_test
 ```
