@@ -7,6 +7,8 @@
 #include "include/raylib.h"
 #include "common_structs.h"
 #include "example.h"
+#include "team1.h"
+#include "team2.h"
 #include <vector>
 #include <iostream>
 #include <queue>
@@ -224,6 +226,12 @@ int main(const int argc, char** argv) {
     //get all captcha definitions
 
     if (!loadCaptchas(example_get_captchas())) {
+        return EXIT_FAILURE;
+    }
+    if (!loadCaptchas(team1_get_captchas())) {
+        return EXIT_FAILURE;
+    }
+    if (!loadCaptchas(team2_get_captchas())) {
         return EXIT_FAILURE;
     }
     //call to all other work files here

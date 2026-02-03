@@ -6,17 +6,17 @@
 
 #### MSVC
 ```cmd
-cl gdi32.lib msvcrt.lib raylib.lib winmm.lib user32.lib shell32.lib main.cpp example.cpp -Ic:include /link /libpath:lib /NODEFAULTLIB:libcmt /NODEFAULTLIB:msvcrtd4
+cl gdi32.lib msvcrt.lib raylib.lib winmm.lib user32.lib shell32.lib main.cpp example.cpp team1.cpp team2.cpp -Ic:include /link /libpath:lib /NODEFAULTLIB:libcmt /NODEFAULTLIB:msvcrtd4
 ```
 
 #### MinGW
 ```cmd
-g++ -o main.exe .\main.cpp .\example.cpp -I include -L lib -lraylib -lgdi32 -lwinmm
+g++ -o main.exe main.cpp example.cpp team1.cpp team2.cpp -I include -L lib -lraylib -lgdi32 -lwinmm
 ```
 
 ### Linux
 ```sh
-g++ main.cpp example.cpp -I include -L lib_l -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o robo_test
+g++ main.cpp example.cpp team1.cpp team2.cpp -I include -L lib_l -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 -o robo_test
 ```
 Note: inorder to run you will need to add the library to you libray path, thanks linux
 ```sh
@@ -27,5 +27,5 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./lib_l
 ### Mac
 You will need xcode build tools installed as usual
 ```sh
-clang++ -framework Cocoa -framework IOKit lib_x/libraylib.a main.cpp example.cpp -o robo_test
+clang++ -framework Cocoa -framework IOKit lib_x/libraylib.a main.cpp example.cpp team1.cpp team2.cpp -o robo_test
 ```
