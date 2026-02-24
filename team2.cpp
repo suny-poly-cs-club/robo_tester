@@ -15,6 +15,9 @@ struct stockMarketState {
     int stock3[STOCK_HISTORY_LENGTH];
     int stock3Trend;
     int doubleCounter;
+    int ownedStock1;
+    int ownedStock2;
+    int ownedStock3;
 };
 
 union ezAutoCasting {
@@ -35,7 +38,13 @@ void * stockMarketCreate() {
     ez.out->stock1Trend = 0;
     ez.out->stock2Trend = 0;
     ez.out->stock3Trend = 0;
+    ez.out->stock1[0] = GetRandomValue(50,250);
+    ez.out->stock2[0] = GetRandomValue(50,250);
+    ez.out->stock3[0] = GetRandomValue(50,250);
     ez.out->doubleCounter = 0;
+    ez.out->ownedStock1=0;
+    ez.out->ownedStock2=0;
+    ez.out->ownedStock3=0;
     return state;
 }
 
@@ -82,8 +91,11 @@ void stockMarketDraw(void * state, int x, int y) {
         DrawLine(x+i*lineLength,y+400-s->stock3[i],x+i*lineLength+lineLength,y+400-s->stock3[i+1],BLUE);
     }
 
+    DrawRectangle(x,y+95,500,2,GRAY);
+    DrawRectangle(x,y+400,500,2,GRAY);
+
     s->doubleCounter++;
-    if (s->doubleCounter%4==0) {
+    if (s->doubleCounter%8==0) {
         s-> time_step ++;
         processStockValue(s->time_step,s->stock1,s->stock1Trend,4);
         processStockValue(s->time_step,s->stock2,s->stock2Trend,6);
