@@ -21,9 +21,6 @@ const int CAPTCHA_WIDTH = 600;
 void *create_trolley_captcha() {
   trolley_captcha_state *state = (trolley_captcha_state *)malloc(sizeof(trolley_captcha_state));
 
-
-  srand(time(NULL));
-
   int tracks = GetRandomValue(4, 9);
   if (tracks % 2) {
     tracks += 1;
