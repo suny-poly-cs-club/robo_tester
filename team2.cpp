@@ -6,23 +6,23 @@
 //stock market
 constexpr int STOCK_HISTORY_LENGTH = 125;
 struct stockMarketState {
-    int funds;
-    int time_step;
-    int stock1[STOCK_HISTORY_LENGTH];
-    int stock1Trend;
-    int stock2[STOCK_HISTORY_LENGTH];
-    int stock2Trend;
-    int stock3[STOCK_HISTORY_LENGTH];
-    int stock3Trend;
-    int doubleCounter;
-    int ownedStock1;
-    int ownedStock2;
-    int ownedStock3;
+    int funds{};
+    int time_step{};
+    int stock1[STOCK_HISTORY_LENGTH]{};
+    int stock1Trend{};
+    int stock2[STOCK_HISTORY_LENGTH]{};
+    int stock2Trend{};
+    int stock3[STOCK_HISTORY_LENGTH]{};
+    int stock3Trend{};
+    int doubleCounter{};
+    int ownedStock1{};
+    int ownedStock2{};
+    int ownedStock3{};
 };
 
 union ezAutoCasting {
     void * in;
-    stockMarketState * out;
+    stockMarketState * stock;
 };
 
 void * stockMarketCreate() {
@@ -30,21 +30,21 @@ void * stockMarketCreate() {
     ezAutoCasting ez{};
     ez.in = state;
     for (int i=0;i<STOCK_HISTORY_LENGTH;i++) {
-        ez.out->stock1[i] = 0;
-        ez.out->stock2[i] = 0;
-        ez.out->stock3[i] = 0;
+        ez.stock->stock1[i] = 0;
+        ez.stock->stock2[i] = 0;
+        ez.stock->stock3[i] = 0;
     }
-    ez.out->time_step = 0;
-    ez.out->stock1Trend = 0;
-    ez.out->stock2Trend = 0;
-    ez.out->stock3Trend = 0;
-    ez.out->stock1[0] = GetRandomValue(50,250);
-    ez.out->stock2[0] = GetRandomValue(50,250);
-    ez.out->stock3[0] = GetRandomValue(50,250);
-    ez.out->doubleCounter = 0;
-    ez.out->ownedStock1=0;
-    ez.out->ownedStock2=0;
-    ez.out->ownedStock3=0;
+    ez.stock->time_step = 0;
+    ez.stock->stock1Trend = 0;
+    ez.stock->stock2Trend = 0;
+    ez.stock->stock3Trend = 0;
+    ez.stock->stock1[0] = GetRandomValue(50,250);
+    ez.stock->stock2[0] = GetRandomValue(50,250);
+    ez.stock->stock3[0] = GetRandomValue(50,250);
+    ez.stock->doubleCounter = 0;
+    ez.stock->ownedStock1=0;
+    ez.stock->ownedStock2=0;
+    ez.stock->ownedStock3=0;
     return state;
 }
 
@@ -74,6 +74,13 @@ void processStockValue(int timeStep, int* stock,int& trend,int volatility) {
     }
 }
 
+void drawSimpleButton(int x, int y, int width,int height, std::string text, Color color) {
+    DrawRectangle(x,y,width,height,color);
+    const int textWidth = MeasureText(text.c_str(),30);//calculate how long the text on the button is
+    const int textRight = x + width/2 - textWidth/2;//calculate the right x coord of the text
+    DrawText(text.c_str(),textRight,y+(height-30)/2,30,BLACK);//render the text on the button
+}
+
 void stockMarketDraw(void * state, int x, int y) {
     auto * s = static_cast<stockMarketState*>(state);
     DrawRectangle(x,y,500,500,BLACK);
@@ -101,10 +108,32 @@ void stockMarketDraw(void * state, int x, int y) {
         processStockValue(s->time_step,s->stock2,s->stock2Trend,6);
         processStockValue(s->time_step,s->stock3,s->stock3Trend,8);
     }
+
+    //draw the buttons
+    drawSimpleButton(6+x,455+y,70,40,"Buy",RED);
+    drawSimpleButton(6+83+x,455+y,70,40,"Sell",RED);
+    drawSimpleButton(6+83*2+x,455+y,70,40,"Buy",ORANGE);
+    drawSimpleButton(6+83*3+x,455+y,70,40,"Sell",ORANGE);
+    drawSimpleButton(6+83*4+x,455+y,70,40,"Buy",BLUE);
+    drawSimpleButton(6+83*5+x,455+y,70,40,"Sell",BLUE);
+
+    std::string stock1Level = std::to_string(s->ownedStock1);
+    std::string stock2Level = std::to_string(s->ownedStock2);
+    std::string stock3Level = std::to_string(s->ownedStock3);
+
+    DrawText(stock1Level.c_str(),x+10,y+420,30,RED);
+    DrawText(stock2Level.c_str(),x+180,y+420,30,ORANGE);
+    DrawText(stock3Level.c_str(),x+350,y+420,30,BLUE);
+
 }
 
 void stockMarketClicked(void * state, int button, int mouseX, int mouseY) {
-
+    // drawSimpleButton(6+x,455+y,70,40,"Buy",RED);
+    // drawSimpleButton(6+83+x,455+y,70,40,"Sell",RED);
+    // drawSimpleButton(6+83*2+x,455+y,70,40,"Buy",ORANGE);
+    // drawSimpleButton(6+83*3+x,455+y,70,40,"Sell",ORANGE);
+    // drawSimpleButton(6+83*4+x,455+y,70,40,"Buy",BLUE);
+    // drawSimpleButton(6+83*5+x,455+y,70,40,"Sell",BLUE);
 }
 
 bool stockMarkeySuccess(void * state) {
