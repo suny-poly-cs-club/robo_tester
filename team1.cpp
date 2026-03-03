@@ -3,16 +3,15 @@
 #include <cstdlib>
 
 typedef struct {
-    Vector2 start_point;
-    Vector2 end_point;
-    Color color;
-} Tracks;
+  Vector2 start_point;
+  Vector2 end_point;
+  Color color;
+} Track;
 
 struct trolley_captcha_state {
   int selected;
   int *people;
   int tracks;
-  Tracks *trackLines;
 };
 
 const int CAPTCHA_HEIGHT = 500;
@@ -21,6 +20,7 @@ const int CAPTCHA_WIDTH = 600;
 void *create_trolley_captcha() {
   trolley_captcha_state *state = (trolley_captcha_state *)malloc(sizeof(trolley_captcha_state));
 
+  // tracks is always even
   int tracks = GetRandomValue(4, 9);
   if (tracks % 2) {
     tracks += 1;
@@ -30,7 +30,6 @@ void *create_trolley_captcha() {
   state->selected = 0;
 
   state->people = (int *)malloc(sizeof(int) * tracks);
-  state->trackLines = (Tracks*)malloc(sizeof(Tracks) * tracks);
   for (int i = 0; i < tracks; i++) {
     state->people[i] = GetRandomValue(0, tracks * 2);
   }
@@ -44,18 +43,27 @@ void draw_trolley_captcha(void *state, int x, int y) {
   ClearBackground(RAYWHITE);
 
   // TODO: figure out how to put people on the lines
-  // TODO: make the lines look better. make them relative to h/2+y
 
-  for (int cnt = 0; cnt < captchaState->tracks; cnt++) {
-    captchaState->trackLines[cnt].start_point = { (float)x, ((float)CAPTCHA_HEIGHT / 2)+y };
-    captchaState->trackLines[cnt].end_point = { (float)x+450, static_cast<float>(50 * cnt + y)};
-    captchaState->trackLines[cnt].color = BLACK;
+  int tracks = captchaState->tracks;
+  float paddingPx = CAPTCHA_WIDTH * 0.125f;
+
+  float TRACK_SPACING = (float)(CAPTCHA_HEIGHT - 2.0f * paddingPx) / tracks;
+
+  int midpoint = tracks / 2;
+
+  Vector2 start = {paddingPx + x, ((float)CAPTCHA_HEIGHT / 2) + y};
+  float endX = CAPTCHA_WIDTH - paddingPx + x;
+
+  for (int cnt = 0; cnt < tracks; cnt++) {
+    float endY = y + paddingPx + TRACK_SPACING * (cnt + 1 * (cnt >= midpoint ? 1 : 0)) + (cnt >= midpoint ? -2.0f : 2.0f);
+
+    Vector2 end = {endX, endY};
 
     DrawLineBezier(
-      captchaState->trackLines[cnt].end_point,
-      captchaState->trackLines[cnt].start_point,
+      start,
+      end,
       4.0f,
-      captchaState->trackLines[cnt].color
+      BLACK
     );
   }
 }
@@ -75,7 +83,7 @@ std::vector<captchaInfo> team1_get_captchas() {
   return {
     {
       "Trolley Captcha",
-      CAPTCHA_HEIGHT,
+      CAPTCHA_WIDTH,
       CAPTCHA_HEIGHT,
       &create_trolley_captcha,
       &draw_trolley_captcha,
