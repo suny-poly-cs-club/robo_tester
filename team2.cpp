@@ -45,6 +45,7 @@ void * stockMarketCreate() {
     ez.stock->ownedStock1=0;
     ez.stock->ownedStock2=0;
     ez.stock->ownedStock3=0;
+    ez.stock->funds = 100;
     return state;
 }
 
@@ -54,7 +55,7 @@ void processStockValue(int timeStep, int* stock,int& trend,int volatility) {
         if (timeStep!=0) {
             currentVal = stock[timeStep-1];
         }
-        stock[timeStep] = GetRandomValue((int)std::max(0,currentVal-volatility+trend),(int)std::min(300,currentVal+volatility+trend));
+        stock[timeStep] = GetRandomValue((int)std::max(1,currentVal-volatility+trend),(int)std::min(300,currentVal+volatility+trend));
         //compute the trend
         if (timeStep>=1) {
             trend = (stock[timeStep] - stock[timeStep-1])/3;
@@ -79,6 +80,28 @@ void drawSimpleButton(int x, int y, int width,int height, std::string text, Colo
     const int textWidth = MeasureText(text.c_str(),30);//calculate how long the text on the button is
     const int textRight = x + width/2 - textWidth/2;//calculate the right x coord of the text
     DrawText(text.c_str(),textRight,y+(height-30)/2,30,BLACK);//render the text on the button
+}
+
+bool mouseOnSimpleButton(int x, int y, int width,int height, int mouseX, int mouseY) {
+    if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        return true;
+    }
+    return false;
+}
+
+int getStockPrice(stockMarketState * state, int stock) {
+    //the time index or something
+    int tind = std::min(state->time_step,STOCK_HISTORY_LENGTH-1);
+    switch (stock) {
+    case 1:
+        return state->stock1[tind];
+    case 2:
+        return state->stock2[tind];
+    case 3:
+        return state->stock3[tind];
+    default:
+        return 0;
+    }
 }
 
 void stockMarketDraw(void * state, int x, int y) {
@@ -110,12 +133,12 @@ void stockMarketDraw(void * state, int x, int y) {
     }
 
     //draw the buttons
-    drawSimpleButton(6+x,455+y,70,40,"Buy",RED);
-    drawSimpleButton(6+83+x,455+y,70,40,"Sell",RED);
-    drawSimpleButton(6+83*2+x,455+y,70,40,"Buy",ORANGE);
-    drawSimpleButton(6+83*3+x,455+y,70,40,"Sell",ORANGE);
-    drawSimpleButton(6+83*4+x,455+y,70,40,"Buy",BLUE);
-    drawSimpleButton(6+83*5+x,455+y,70,40,"Sell",BLUE);
+    drawSimpleButton(6+x,455+y,70,40,"Buy",s->funds > getStockPrice(s,1)? RED:GRAY);
+    drawSimpleButton(6+83+x,455+y,70,40,"Sell",s->ownedStock1 > 0?RED:GRAY);
+    drawSimpleButton(6+83*2+x,455+y,70,40,"Buy",s->funds > getStockPrice(s,2)? ORANGE:GRAY);
+    drawSimpleButton(6+83*3+x,455+y,70,40,"Sell",s->ownedStock2 > 0?ORANGE:GRAY);
+    drawSimpleButton(6+83*4+x,455+y,70,40,"Buy",s->funds > getStockPrice(s,3)? BLUE:GRAY);
+    drawSimpleButton(6+83*5+x,455+y,70,40,"Sell",s->ownedStock3 > 0?BLUE:GRAY);
 
     std::string stock1Level = std::to_string(s->ownedStock1);
     std::string stock2Level = std::to_string(s->ownedStock2);
@@ -128,16 +151,38 @@ void stockMarketDraw(void * state, int x, int y) {
 }
 
 void stockMarketClicked(void * state, int button, int mouseX, int mouseY) {
-    // drawSimpleButton(6+x,455+y,70,40,"Buy",RED);
-    // drawSimpleButton(6+83+x,455+y,70,40,"Sell",RED);
-    // drawSimpleButton(6+83*2+x,455+y,70,40,"Buy",ORANGE);
-    // drawSimpleButton(6+83*3+x,455+y,70,40,"Sell",ORANGE);
-    // drawSimpleButton(6+83*4+x,455+y,70,40,"Buy",BLUE);
-    // drawSimpleButton(6+83*5+x,455+y,70,40,"Sell",BLUE);
+    ezAutoCasting ez{};
+    ez.in = state;
+    if(mouseOnSimpleButton(6,455,70,40,     mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,1)){
+        ez.stock->ownedStock1++;
+        ez.stock->funds -= getStockPrice(ez.stock,1);
+    }
+    if(mouseOnSimpleButton(6+83,455,70,40,  mouseX,mouseY) && ez.stock->ownedStock1 > 0){
+        ez.stock->ownedStock1--;
+        ez.stock->funds += getStockPrice(ez.stock,1);
+    }
+    if(mouseOnSimpleButton(6+83*2,455,70,40,mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,2)){
+        ez.stock->ownedStock2++;
+        ez.stock->funds -= getStockPrice(ez.stock,2);
+    }
+    if(mouseOnSimpleButton(6+83*3,455,70,40,mouseX,mouseY) && ez.stock->ownedStock2 > 0){
+        ez.stock->ownedStock2--;
+        ez.stock->funds += getStockPrice(ez.stock,2);
+    }
+    if(mouseOnSimpleButton(6+83*4,455,70,40,mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,3)){
+        ez.stock->ownedStock3++;
+        ez.stock->funds -= getStockPrice(ez.stock,3);
+    }
+    if(mouseOnSimpleButton(6+83*5,455,70,40,mouseX,mouseY) && ez.stock->ownedStock3 > 0){
+        ez.stock->ownedStock3--;
+        ez.stock->funds += getStockPrice(ez.stock,3);
+    }
 }
 
 bool stockMarkeySuccess(void * state) {
-    return true;
+    ezAutoCasting ez{};
+    ez.in = state;
+    return ez.stock->funds > 500;//temp code!
 }
 
 std::string stockMarketGetInstructions(void * state) {
