@@ -30,9 +30,13 @@ void *create_trolley_captcha() {
   state->selected = 0;
 
   state->people = (int *)malloc(sizeof(int) * tracks);
+
+  int *peopleSeq = LoadRandomSequence(tracks, 0, tracks - 1);
   for (int i = 0; i < tracks; i++) {
-    state->people[i] = GetRandomValue(0, tracks * 2);
+    state->people[i] = peopleSeq[i];
   }
+
+  UnloadRandomSequence(peopleSeq);
 
   return state;
 }
@@ -59,16 +63,52 @@ void draw_trolley_captcha(void *state, int x, int y) {
 
     Vector2 end = {endX, endY};
 
+    float boxWidth = (tracks - 1) * 3.0f + (tracks - 2) * 5;
+    // float boxWidth = (tracks - 1) * 7 - 5;
+    float boxHight = 25;
+
+    Rectangle hitbox = {
+      .x = endX - 15 - boxWidth,
+      .y = endY - (boxHight / 2),
+      .width = boxWidth,
+      .height = boxHight,
+    };
+
+    DrawRectangleRec(hitbox, ORANGE);
+
     DrawLineBezier(
       start,
       end,
       4.0f,
       BLACK
     );
+
+    for (int i = 0; i < captchaState->people[cnt]; i++) {
+      // DrawLineEx(
+      //   {endX - i * 5 - 15, endY - 10},
+      //   {endX - i * 5 - 15, endY + 10},
+      //   3.0f,
+      //   RED
+      // );
+
+      Rectangle r = {
+        .x = endX - 15 - i * 5.0f,
+        .y = endY - 10,
+        .width = 2.0f,
+        .height = 20.0f,
+      };
+
+      DrawRectangleRec(
+        r,
+        RED
+      );
+    }
   }
 }
 
-void trolley_mouse_click(void *state, int button, int mouseX, int mouseY) {}
+void trolley_mouse_click(void *state, int button, int mouseX, int mouseY) {
+
+}
 
 bool trolley_box_checked(void *state) {
   return false;
