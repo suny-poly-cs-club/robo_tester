@@ -7,10 +7,11 @@
 
 Image foxyImg{};
 Texture foxyGif{};
+Sound foxySound{};
 int nFrames = 0;
 
 struct ReactionState {
-    int curFrame;
+    float curFrame;
     int nFramesLeft;
 
     ReactionState() : curFrame{0}, nFramesLeft{GetRandomValue(120, 360)} {
@@ -19,10 +20,14 @@ struct ReactionState {
 };
 
 void * reaction_create_fn() {
-    // Load GIF
+    LoadAudioStream(48'000, 16, 2);
+    InitAudioDevice();
+
+    // Load GIF.
     if (nFrames == 0) {
-        foxyImg = LoadImageAnim("assets/foxy.gif", &nFrames);
+        foxyImg = LoadImageAnim("assets/reaction/foxy.gif", &nFrames);
         foxyGif = LoadTextureFromImage(foxyImg);
+        foxySound = LoadSound("assets/reaction/foxy.mp3");
     }
 
     auto state = new ReactionState();
@@ -32,13 +37,18 @@ void * reaction_create_fn() {
 void reaction_draw_fn(void * _state, int x, int y) {
     ReactionState* state = (ReactionState*)_state;
 
-    // Draw green
+    // Draw green.
     if (state->nFramesLeft >= 0) {
         DrawRectangle(x, y, 800, 450, GREEN);
     } else {
+        if (state->nFramesLeft == -1) {
+            PlaySound(foxySound);
+        }
+        
         // Prepare next frame.
-        state->curFrame = (state->curFrame + 1) % nFrames;
-        UpdateTexture(foxyGif, (unsigned char*)foxyImg.data + (foxyImg.width * foxyImg.height * 4 * state->curFrame));
+        state->curFrame += 0.5f;
+        const int curFrame = static_cast<int>(state->curFrame) % nFrames;
+        UpdateTexture(foxyGif, (unsigned char*)foxyImg.data + (foxyImg.width * foxyImg.height * 4 * curFrame));
 
         const Rectangle src{
             0.0f,

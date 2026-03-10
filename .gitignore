@@ -14,6 +14,7 @@
 CMakeLists.txt
 cmake-build-debug/
 cmake-build-release/
+Makefile
 build/
 Debug/
 Release/
