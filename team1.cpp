@@ -63,12 +63,13 @@ void draw_trolley_captcha(void *state, int x, int y) {
 
     Vector2 end = {endX, endY};
 
-    float boxWidth = (tracks - 1) * 3.0f + (tracks - 2) * 5;
+    // float boxWidth = (tracks - 1) * 3.0f + (tracks - 2) * 5;
+    float boxWidth = (tracks - 1) * 8;
     // float boxWidth = (tracks - 1) * 7 - 5;
     float boxHight = 25;
 
     Rectangle hitbox = {
-      .x = endX - 15 - boxWidth,
+      .x = endX - 15 - boxWidth + 5.5f,
       .y = endY - (boxHight / 2),
       .width = boxWidth,
       .height = boxHight,
@@ -84,17 +85,10 @@ void draw_trolley_captcha(void *state, int x, int y) {
     );
 
     for (int i = 0; i < captchaState->people[cnt]; i++) {
-      // DrawLineEx(
-      //   {endX - i * 5 - 15, endY - 10},
-      //   {endX - i * 5 - 15, endY + 10},
-      //   3.0f,
-      //   RED
-      // );
-
       Rectangle r = {
-        .x = endX - 15 - i * 5.0f,
+        .x = endX - 15 - i * 8.0f,
         .y = endY - 10,
-        .width = 2.0f,
+        .width = 3.0f,
         .height = 20.0f,
       };
 
