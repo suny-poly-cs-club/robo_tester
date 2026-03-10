@@ -18,6 +18,7 @@ struct stockMarketState {
     int ownedStock1{};
     int ownedStock2{};
     int ownedStock3{};
+    int netProfit{};
 };
 
 union ezAutoCasting {
@@ -46,6 +47,7 @@ void * stockMarketCreate() {
     ez.stock->ownedStock2=0;
     ez.stock->ownedStock3=0;
     ez.stock->funds = 100;
+    ez.stock->netProfit=0;
     return state;
 }
 
@@ -114,6 +116,15 @@ void stockMarketDraw(void * state, int x, int y) {
     } else {
         DrawText(fundsText.c_str(),x+10,y+20,30,GREEN);
     }
+    std::string profitText = "Net: $";
+    profitText+=std::to_string(s->netProfit);
+    int netLength = MeasureText(profitText.c_str(),30);
+    if (s->netProfit < 0) {
+        DrawText(profitText.c_str(),x+490-netLength,y+20,30,RED);
+    } else {
+        DrawText(profitText.c_str(),x+490-netLength,y+20,30,GREEN);
+    }
+
     int lineLength = 500/STOCK_HISTORY_LENGTH;
     for (int i=0;i<STOCK_HISTORY_LENGTH-1;i++) {
         DrawLine(x+i*lineLength,y+400-s->stock1[i],x+i*lineLength+lineLength,y+400-s->stock1[i+1],RED);
@@ -156,33 +167,39 @@ void stockMarketClicked(void * state, int button, int mouseX, int mouseY) {
     if(mouseOnSimpleButton(6,455,70,40,     mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,1)){
         ez.stock->ownedStock1++;
         ez.stock->funds -= getStockPrice(ez.stock,1);
+        ez.stock->netProfit -= getStockPrice(ez.stock,1);
     }
     if(mouseOnSimpleButton(6+83,455,70,40,  mouseX,mouseY) && ez.stock->ownedStock1 > 0){
         ez.stock->ownedStock1--;
         ez.stock->funds += getStockPrice(ez.stock,1);
+        ez.stock->netProfit += getStockPrice(ez.stock,1);
     }
     if(mouseOnSimpleButton(6+83*2,455,70,40,mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,2)){
         ez.stock->ownedStock2++;
         ez.stock->funds -= getStockPrice(ez.stock,2);
+        ez.stock->netProfit -= getStockPrice(ez.stock,2);
     }
     if(mouseOnSimpleButton(6+83*3,455,70,40,mouseX,mouseY) && ez.stock->ownedStock2 > 0){
         ez.stock->ownedStock2--;
         ez.stock->funds += getStockPrice(ez.stock,2);
+        ez.stock->netProfit += getStockPrice(ez.stock,2);
     }
     if(mouseOnSimpleButton(6+83*4,455,70,40,mouseX,mouseY) && ez.stock->funds > getStockPrice(ez.stock,3)){
         ez.stock->ownedStock3++;
         ez.stock->funds -= getStockPrice(ez.stock,3);
+        ez.stock->netProfit -= getStockPrice(ez.stock,3);
     }
     if(mouseOnSimpleButton(6+83*5,455,70,40,mouseX,mouseY) && ez.stock->ownedStock3 > 0){
         ez.stock->ownedStock3--;
         ez.stock->funds += getStockPrice(ez.stock,3);
+        ez.stock->netProfit += getStockPrice(ez.stock,3);
     }
 }
 
 bool stockMarkeySuccess(void * state) {
     ezAutoCasting ez{};
     ez.in = state;
-    return ez.stock->funds > 500;//temp code!
+    return ez.stock->netProfit > 500;//temp code!
 }
 
 std::string stockMarketGetInstructions(void * state) {
