@@ -1,6 +1,7 @@
 #include "team1.h"
 #include "include/raylib.h"
 #include <cstdlib>
+#include <iterator>
 
 typedef struct {
   Vector2 start_point;
@@ -12,10 +13,25 @@ struct trolley_captcha_state {
   int selected;
   int *people;
   int tracks;
+  int animationframe;
 };
 
 const int CAPTCHA_HEIGHT = 500;
 const int CAPTCHA_WIDTH = 600;
+
+float EaseCubicInOut(float t, float b, float c, float d)
+{
+    float result = 0.0f;
+
+    if ((t /= 0.5f*d) < 1) result = 0.5f*c*t*t*t + b;
+    else
+    {
+        t -= 2;
+        result = 0.5f*c*(t*t*t + 2.0f) + b;
+    }
+
+    return result;
+}
 
 void *create_trolley_captcha() {
   trolley_captcha_state *state = (trolley_captcha_state *)malloc(sizeof(trolley_captcha_state));
@@ -27,9 +43,10 @@ void *create_trolley_captcha() {
   }
 
   state->tracks = tracks;
-  state->selected = 0;
+  state->selected = 2;
 
   state->people = (int *)malloc(sizeof(int) * tracks);
+  state->animationframe = 0;
 
   int *peopleSeq = LoadRandomSequence(tracks, 0, tracks - 1);
   for (int i = 0; i < tracks; i++) {
@@ -42,7 +59,7 @@ void *create_trolley_captcha() {
 }
 
 void draw_trolley_captcha(void *state, int x, int y) {
-  const auto *captchaState = (trolley_captcha_state *)state;
+  auto *captchaState = (trolley_captcha_state *)state;
 
   ClearBackground(RAYWHITE);
 
@@ -57,6 +74,8 @@ void draw_trolley_captcha(void *state, int x, int y) {
 
   Vector2 start = {paddingPx + x, ((float)CAPTCHA_HEIGHT / 2) + y};
   float endX = CAPTCHA_WIDTH - paddingPx + x;
+
+  Vector2 endanimation;
 
   for (int cnt = 0; cnt < tracks; cnt++) {
     float endY = y + paddingPx + TRACK_SPACING * (cnt + 1 * (cnt >= midpoint ? 1 : 0)) + (cnt >= midpoint ? -2.0f : 2.0f);
@@ -75,13 +94,18 @@ void draw_trolley_captcha(void *state, int x, int y) {
       .height = boxHight,
     };
 
-    DrawRectangleRec(hitbox, ORANGE);
+    // DrawRectangleRec(hitbox, ORANGE);
+
+    if (cnt == captchaState->selected) {
+      endanimation.x = end.x;
+      endanimation.y = end.y;
+    }
 
     DrawLineBezier(
       start,
       end,
       4.0f,
-      BLACK
+      cnt == captchaState->selected ? BLUE : BLACK
     );
 
     for (int i = 0; i < captchaState->people[cnt]; i++) {
@@ -97,6 +121,24 @@ void draw_trolley_captcha(void *state, int x, int y) {
         RED
       );
     }
+  }
+
+  if (captchaState->animationframe <= 120) {
+    float animationprogress = ((float)captchaState->animationframe/120);
+
+    float x1 = start.x;
+    float y1 = start.y;
+    float x2 = endanimation.x;
+    float y2 = endanimation.y;
+
+    float animationx = (endanimation.x - start.x) * animationprogress + start.x;
+    float animationy = EaseCubicInOut(animationprogress, y1, y2-y1, 1);
+
+    DrawRectangle(animationx-8, animationy-8, 16, 16, RED);
+
+    printf("%f (%f %f) y1=%f y2=%f\n", animationprogress, animationx, animationy, y1, y2);
+
+    captchaState->animationframe++;
   }
 }
 
