@@ -273,6 +273,7 @@ int main(const int argc, char** argv) {
 
     // window Initialization
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Robot Tester");
+    InitAudioDevice();      // Initialize audio device
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
@@ -328,7 +329,7 @@ int main(const int argc, char** argv) {
         }
 
     }
-
+    CloseAudioDevice();     // Close audio device
     CloseWindow();        // Close window and OpenGL context
 
     return 0;
