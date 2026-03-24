@@ -20,9 +20,6 @@ struct ReactionState {
 };
 
 void * reaction_create_fn() {
-    LoadAudioStream(48'000, 16, 2);
-    InitAudioDevice();
-
     // Load GIF.
     if (nFrames == 0) {
         foxyImg = LoadImageAnim("assets/reaction/foxy.gif", &nFrames);
