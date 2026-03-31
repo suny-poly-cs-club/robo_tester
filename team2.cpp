@@ -2,8 +2,8 @@
 #include <iostream> //cout
 #include "include/raylib.h"
 #include <vector>
-#include <windows.h>
-#include <mmsystem.h>
+#include "shark.h"
+#include "reaction.h"
 
 using namespace std;
 
@@ -247,8 +247,12 @@ void * harmHuamnCreate(){
 void harmHumanDraw(void * state, int x, int y){
     //passes the state in every frame, x & y is within the captcha window
     const auto * human_state = (harmHumanState*)state;
-    DrawTexture(road,x,y,WHITE);
-    DrawTexture(car,x,y,WHITE);
+    int possiblePositions[3] = {x+50,x+200,x+350};
+    int pos = possiblePositions[human_state->humanLocation];
+
+    DrawTexturePro(road,{0,0, (float)road.width, (float)road.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+    DrawTexturePro(human,{0,0, (float)human.width, (float)human.height},{(float)pos, (float)y, 100, 100}, {0, 0}, 0, WHITE);
+    DrawTexturePro(car,{0,0, (float)car.width, (float)car.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
 }
 
 void harmHumanMouseCLicked(void * state, int button, int mouseX, int mouseY){
@@ -267,7 +271,7 @@ std::string harmHumanGetInstructions(void * state){
 }
 
 void play_music(){
-    PlaySound(TEXT("DrivingInMyCar.mp3"), NULL, SND_SYNC);
+    // PlaySound(TEXT("DrivingInMyCar.mp3"), NULL, SND_SYNC);
 }
 
 
