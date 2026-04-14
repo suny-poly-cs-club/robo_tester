@@ -30,10 +30,14 @@ struct stockMarketState {
     int ownedStock3{};
     int netProfit{};
 };
+struct breakoutState {
+    int platformX;
+};
 
 union ezAutoCasting {
     void * in;
     stockMarketState * stock;
+    breakoutState * breakout;
 };
 
 void * stockMarketCreate() {
@@ -320,6 +324,46 @@ void play_music(){
 
 //break out
 
+void * createBreadkOut() {
+    void * bos = malloc(sizeof(breakoutState));
+    ezAutoCasting state;
+    state.in = bos;
+    state.breakout->platformX = 400;
+    return bos;
+}
+
+void breakoutDraw(void * state, int x, int y) {
+    ezAutoCasting breakout;
+    breakout.in = state;
+
+    DrawRectangle(x,y,800,450,BLACK);//background
+
+    //paddle
+
+    DrawRectangle(x+breakout.breakout->platformX,y+400,150,20,BLUE);
+    int mouseSreenX = GetMouseX()-x;
+    if (mouseSreenX < 0) {
+        mouseSreenX = 0;
+    }
+    if (mouseSreenX > 650) {
+        mouseSreenX = 650;
+    }
+    breakout.breakout->platformX = mouseSreenX;
+}
+
+
+void breakoutMouseClicked(void * state, int button, int x, int y) {
+
+}
+
+bool breakoutCheckSuccess(void * state) {
+    return false;
+}
+
+std::string breakoutInstructions(void * state) {
+    return "Breakout!";
+}
+
 
 
 //this should be at the bottom
@@ -371,10 +415,19 @@ std::vector<captchaInfo> team2_get_captchas() {
             &reaction_mouse_click_fn,
             &reaction_check_success_fn,
             &reaction_get_instructions_fn,
-        }
+        },
 
         //break out
-
+        {
+            "Break out",
+            800,
+            450,
+            &createBreadkOut,
+            &breakoutDraw,
+            &breakoutMouseClicked,
+            &breakoutCheckSuccess,
+            &breakoutInstructions
+        }
 
         //other
 
