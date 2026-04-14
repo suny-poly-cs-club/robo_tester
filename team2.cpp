@@ -221,12 +221,19 @@ std::string stockMarketGetInstructions(void * state) {
 Texture car;
 Texture human;
 Texture road;
+Sound drivingInMyCar;
+Texture truck;
+Image truckAnimationImage;
+int numberOfTruckFrames;
 bool hthLoadded = false;
 
 struct harmHumanState{
     //variables to hold state information
     int humanLocation;
     int possiblePositions[3];
+    bool animationIsRunning;
+    int frames;
+    int frameWeight;
 };
 
 void * harmHuamnCreate(){
@@ -236,32 +243,66 @@ void * harmHuamnCreate(){
         car = LoadTexture("assets/team2/BMWcarWindow.png");
         human = LoadTexture("assets/team2/FuckingFatass.png");
         road = LoadTexture("assets/team2/Road.png");
+        drivingInMyCar = LoadSound("assets/team2/DrivingInMyCar.mp3");
+        truckAnimationImage = LoadImageAnim("assets/team2/asgoreTruck.gif", &numberOfTruckFrames);
+        truck = LoadTextureFromImage(truckAnimationImage);
         hthLoadded = true;
     }
     void * memBlock = malloc(sizeof(harmHumanState));
         harmHumanState * state = (harmHumanState*)memBlock;
         state->humanLocation = GetRandomValue(0,2);
+        state->animationIsRunning = false;
+        state->frames = 0;
+        state->frameWeight = 0;
+        PlaySound(drivingInMyCar);
     return memBlock;
 }
 
 void harmHumanDraw(void * state, int x, int y){
     //passes the state in every frame, x & y is within the captcha window
-    const auto * human_state = (harmHumanState*)state;
-    int possiblePositions[3] = {x+50,x+200,x+350};
+    auto * human_state = (harmHumanState*)state;
+    int possiblePositions[3] = {x+75,x+195,x+325};
     int pos = possiblePositions[human_state->humanLocation];
 
     DrawTexturePro(road,{0,0, (float)road.width, (float)road.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
     DrawTexturePro(human,{0,0, (float)human.width, (float)human.height},{(float)pos, (float)y, 100, 100}, {0, 0}, 0, WHITE);
     DrawTexturePro(car,{0,0, (float)car.width, (float)car.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+    if(!IsSoundPlaying(drivingInMyCar)){
+        PlaySound(drivingInMyCar);
+    }
+    if(human_state->animationIsRunning){
+        DrawTexturePro(truck,{0,0, (float)truck.width, (float)truck.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+        human_state->frameWeight++;
+        if(human_state->frameWeight % 2 == 0){
+            human_state->frames = (human_state->frames + 1) % numberOfTruckFrames;
+            UpdateTexture(truck, (unsigned char*)truckAnimationImage.data + (truckAnimationImage.width * truckAnimationImage.height * 4 * human_state->frames));
+        }
+    }
 }
 
 void harmHumanMouseCLicked(void * state, int button, int mouseX, int mouseY){
     //if the user clicks the mouse within the area, call it
     //x & y are within the captcha window
+    auto * human_state = (harmHumanState*)state;
+    int possiblePositions[3] = {75, 195, 325};
+    int pos = possiblePositions[human_state->humanLocation];
+    if(mouseX >= pos-60 && mouseX <= pos+60){
+        cout<<"Current value of animationIsRunning: "<<human_state->animationIsRunning<<endl;
+        if (!human_state->animationIsRunning){
+            human_state->animationIsRunning = true;
+            human_state->frames = 0;
+            cout<<"clicked human"<<endl;
+        }
+    }
 }
 
 bool harmHumanCheckSuccess(void * state){
-    //returns true if captcha is in a completed state
+    auto human_state = (harmHumanState*)state;
+    if(human_state->animationIsRunning){
+        StopSound(drivingInMyCar);
+        return true;
+        
+    }
     return false;
 }
 
