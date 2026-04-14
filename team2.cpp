@@ -283,6 +283,15 @@ void play_music(){
 std::vector<captchaInfo> team2_get_captchas() {
     return {
         //shark
+        {
+            "shark",
+            500, 500,
+            &shark_create_fn,
+            &shark_draw_fn,
+            &shark_mouse_click_fn,
+            &shark_check_success_fn,
+            &shark_get_instructions_fn,
+        },
 
         //stock market
         {
