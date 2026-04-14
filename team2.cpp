@@ -4,6 +4,7 @@
 #include <vector>
 #include "shark.h"
 #include "reaction.h"
+#include "raymath.h"
 
 using namespace std;
 
@@ -342,10 +343,27 @@ Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity,
         ball.y <= object.y+object.height &&
         ball.y+ball.height >= object.y
     ) {
-        hit = true;
-        // velocity.y *=-1;
-        //lerp between the 2 extreams
-        float bounceAngle;
+        hit = true; //PI/6 - 5PI/6
+        bool onSide = false;
+        if (ball.x < object.x || ball.x > object.x+object.width) {
+            onSide = true;
+        }
+
+        if (onSide) {
+            return {velocity.x*-1,velocity.y};
+        } else {
+            bool below = ball.y >= object.y+object.height/2;
+            float ops = ball.x - object.x;
+            ops /= object.width;
+            //TODO: figure out what side was hit
+            ops = 1 - ops;
+            float angle = Lerp(-PI/6.0f,-5.0f*PI/6.0f,ops);
+            if (below) {
+                angle *= -1;
+            }
+
+            return Vector2Rotate({10,0},angle);
+        }
     }
     return velocity;
 }
