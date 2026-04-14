@@ -35,6 +35,12 @@ struct breakoutState {
     int platformX;
     Vector2 ballPos;
     Vector2 ballVelocity;
+    unsigned int row4;
+    unsigned int row3;
+    unsigned int row2;
+    unsigned int row1;
+    unsigned int row5;
+
 };
 
 union ezAutoCasting {
@@ -334,16 +340,23 @@ void * createBreadkOut() {
     state.breakout->platformX = 400;
     state.breakout->ballPos = {475,375};
     state.breakout->ballVelocity = {0,10};
+    state.breakout->row4 = ~(~0u<<10);
+    state.breakout->row3 = ~(~0u<<10);
+    state.breakout->row2 = ~(~0u<<10);
+    state.breakout->row1 = ~(~0u<<10);
+    state.breakout->row5 = ~(~0u<<10);
+
     return bos;
 }
 
 Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity, bool& hit) {
+    hit = false;
     if (ball.x <= object.x+object.width &&
         ball.x+ball.width >= object.x &&
         ball.y <= object.y+object.height &&
         ball.y+ball.height >= object.y
     ) {
-        hit = true; //PI/6 - 5PI/6
+        hit = true;
         bool onSide = false;
         if (ball.x < object.x || ball.x > object.x+object.width) {
             onSide = true;
@@ -355,7 +368,6 @@ Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity,
             bool below = ball.y >= object.y+object.height/2;
             float ops = ball.x - object.x;
             ops /= object.width;
-            //TODO: figure out what side was hit
             ops = 1 - ops;
             float angle = Lerp(-PI/6.0f,-5.0f*PI/6.0f,ops);
             if (below) {
@@ -369,7 +381,7 @@ Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity,
 }
 
 void breakoutDraw(void * state, int x, int y) {
-    ezAutoCasting breakout;
+    ezAutoCasting breakout{};
     breakout.in = state;
 
     DrawRectangle(x,y,800,450,BLACK);//background
@@ -402,18 +414,74 @@ void breakoutDraw(void * state, int x, int y) {
      }
 
     //check paddle collisions
-    // if (breakout.breakout->ballPos.x-5 <= static_cast<float>(breakout.breakout->platformX)+150.0f &&
-    //     breakout.breakout->ballPos.x+5 >= static_cast<float>(breakout.breakout->platformX) &&
-    //     breakout.breakout->ballPos.y-10 <= 420 &&
-    //     breakout.breakout->ballPos.y+10 >= 400
-    //     ) {
-    //     breakout.breakout->ballVelocity.y *=-1;
-    //     breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
-    // }
     bool hitPadle = false;
     breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},{static_cast<float>(breakout.breakout->platformX),400,150,20},breakout.breakout->ballVelocity,hitPadle);
     if (hitPadle) {
         breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+    }
+
+    //draw the rows
+    for (int i=0;i<10;i++) {
+        if (breakout.breakout->row4 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 50),76,20};
+            DrawRectangleRec(box,RED);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row4 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row3 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 80),76,20};
+            DrawRectangleRec(box,ORANGE);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row3 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row2 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 110),76,20};
+            DrawRectangleRec(box,YELLOW);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row2 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row1 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 140),76,20};
+            DrawRectangleRec(box,GREEN);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row1 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row5 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 170),76,20};
+            DrawRectangleRec(box,DARKBLUE);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row5 &= ~(1<<i);
+            }
+        }
     }
 }
 
@@ -423,11 +491,13 @@ void breakoutMouseClicked(void * state, int button, int x, int y) {
 }
 
 bool breakoutCheckSuccess(void * state) {
-    return false;
+    ezAutoCasting data{};
+    data.in = state;
+    return !(data.breakout->row1 || data.breakout->row2 || data.breakout->row3 || data.breakout->row4 || data.breakout->row5);
 }
 
 std::string breakoutInstructions(void * state) {
-    return "Breakout!";
+    return "Breakout!    Clear the screen";
 }
 
 
