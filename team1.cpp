@@ -2,20 +2,24 @@
 #include "include/raylib.h"
 #include <cstdlib>
 
-// TODO: delete people when they get hit
-// TODO: figure out which line mouse clicks
-
 typedef struct {
   Vector2 start_point;
   Vector2 end_point;
   Color color;
 } Track;
 
+typedef enum {
+  ANIM_NOT_STARTED,
+  ANIM_PLAYING,
+  ANIM_DONE,
+} AnimationState;
+
 struct trolley_captcha_state {
   int selected;
   int *people;
   int tracks;
   int animationframe;
+  AnimationState animationState;
 };
 
 const int CAPTCHA_HEIGHT = 500;
@@ -30,9 +34,7 @@ float EaseCubicInOut(float t, float b, float c, float d) {
   return 0.5f*c*(t*t*t + 2.0f) + b;
 }
 
-void *create_trolley_captcha() {
-  trolley_captcha_state *state = (trolley_captcha_state *)malloc(sizeof(trolley_captcha_state));
-
+void init_trolley_catcha(trolley_captcha_state *state) {
   // tracks is always even
   int tracks = GetRandomValue(4, 9);
   if (tracks % 2) {
@@ -40,7 +42,8 @@ void *create_trolley_captcha() {
   }
 
   state->tracks = tracks;
-  state->selected = 2;
+  state->selected = 0;
+  state->animationState = ANIM_NOT_STARTED;
 
   state->people = (int *)malloc(sizeof(int) * tracks);
   state->animationframe = 0;
@@ -51,6 +54,11 @@ void *create_trolley_captcha() {
   }
 
   UnloadRandomSequence(peopleSeq);
+}
+
+void *create_trolley_captcha() {
+  trolley_captcha_state *state = (trolley_captcha_state *)malloc(sizeof(trolley_captcha_state));
+  init_trolley_catcha(state);
 
   return state;
 }
@@ -72,14 +80,20 @@ void draw_trolley_captcha(void *state, int x, int y) {
 
   Vector2 endanimation;
 
+  Rectangle lever = {
+    .x = start.x,
+    .y = start.y - 40,
+    .width = 25.0,
+    .height = 25.0,
+  };
+  DrawRectangleRec(lever, ORANGE);
+
   for (int cnt = 0; cnt < tracks; cnt++) {
     float endY = y + paddingPx + TRACK_SPACING * (cnt + 1 * (cnt >= midpoint ? 1 : 0)) + (cnt >= midpoint ? -2.0f : 2.0f);
 
     Vector2 end = {endX, endY};
 
-    // float boxWidth = (tracks - 1) * 3.0f + (tracks - 2) * 5;
     float boxWidth = (tracks - 1) * 8;
-    // float boxWidth = (tracks - 1) * 7 - 5;
     float boxHight = 25;
 
     Rectangle hitbox = {
@@ -88,8 +102,6 @@ void draw_trolley_captcha(void *state, int x, int y) {
       .width = boxWidth,
       .height = boxHight,
     };
-
-    // DrawRectangleRec(hitbox, ORANGE);
 
     if (cnt == captchaState->selected) {
       endanimation.x = end.x;
@@ -118,35 +130,67 @@ void draw_trolley_captcha(void *state, int x, int y) {
     }
   }
 
-  if (captchaState->animationframe <= 120) {
-    float animationprogress = ((float)captchaState->animationframe/120);
+  if (captchaState->animationState == ANIM_PLAYING) {
+    if (captchaState->animationframe <= 120) {
+      float animationprogress = ((float)captchaState->animationframe/120);
 
-    float x1 = start.x;
-    float y1 = start.y;
-    float x2 = endanimation.x;
-    float y2 = endanimation.y;
+      float x1 = start.x;
+      float y1 = start.y;
+      float x2 = endanimation.x;
+      float y2 = endanimation.y;
 
-    float animationx = (endanimation.x - start.x) * animationprogress + start.x;
-    float animationy = EaseCubicInOut(animationprogress, y1, y2-y1, 1);
+      float animationx = (endanimation.x - start.x) * animationprogress + start.x;
+      float animationy = EaseCubicInOut(animationprogress, y1, y2-y1, 1);
 
-    DrawRectangle(animationx-8, animationy-8, 16, 16, RED);
+      DrawRectangle(animationx-8, animationy-8, 16, 16, RED);
 
-    printf("%f (%f %f) y1=%f y2=%f\n", animationprogress, animationx, animationy, y1, y2);
-
-    captchaState->animationframe++;
+      captchaState->animationframe++;
+    } else {
+      captchaState->animationState = ANIM_DONE;
+    }
   }
 }
 
 void trolley_mouse_click(void *state, int button, int mouseX, int mouseY) {
+  auto *captchaState = (trolley_captcha_state *)state;
 
+  float topLeftX = 75;
+  float topLeftY = 210;
+  float bottomRightX = 100.0;
+  float bottomRightY = 235.0;
+
+  bool mouseInButton = mouseX >= topLeftX && mouseX <= bottomRightX && mouseY >= topLeftY && mouseY <= bottomRightY;
+  if (!mouseInButton || captchaState->animationState != ANIM_NOT_STARTED) {
+    return;
+  }
+
+  captchaState->selected = (captchaState->selected + 1) % captchaState->tracks;
 }
 
 bool trolley_box_checked(void *state) {
+  auto *captchaState = (trolley_captcha_state *)state;
+  if (captchaState->animationState == ANIM_NOT_STARTED || captchaState->animationState == ANIM_PLAYING) {
+    captchaState->animationState = ANIM_PLAYING;
+    return false;
+  }
+
+  int solution = 0;
+  for (int i = 0; i < captchaState->tracks; i++) {
+    if (captchaState->people[i] > captchaState->people[solution]) {
+      solution = i;
+    }
+  }
+
+  if (solution == captchaState->selected) {
+    return true;
+  }
+
+  init_trolley_catcha(captchaState);
   return false;
 }
 
 std::string trolley_get_instructions(void *state) {
-  return "thing";
+  return "Choose the track with the most people,\nthen click verify (twice)";
 }
 
 //this should be at the bottom
