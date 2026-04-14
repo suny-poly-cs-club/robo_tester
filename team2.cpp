@@ -318,6 +318,8 @@ void play_music(){
 
 //teacton time
 
+//break out
+
 
 
 //this should be at the bottom
@@ -361,6 +363,11 @@ std::vector<captchaInfo> team2_get_captchas() {
             &reaction_check_success_fn,
             &reaction_get_instructions_fn,
         }
+
+        //break out
+
+
+        //other
 
     };
 }
