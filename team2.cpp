@@ -32,6 +32,8 @@ struct stockMarketState {
 };
 struct breakoutState {
     int platformX;
+    Vector2 ballPos;
+    Vector2 ballVelocity;
 };
 
 union ezAutoCasting {
@@ -329,7 +331,23 @@ void * createBreadkOut() {
     ezAutoCasting state;
     state.in = bos;
     state.breakout->platformX = 400;
+    state.breakout->ballPos = {475,375};
+    state.breakout->ballVelocity = {0,10};
     return bos;
+}
+
+Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity, bool& hit) {
+    if (ball.x <= object.x+object.width &&
+        ball.x+ball.width >= object.x &&
+        ball.y <= object.y+object.height &&
+        ball.y+ball.height >= object.y
+    ) {
+        hit = true;
+        // velocity.y *=-1;
+        //lerp between the 2 extreams
+        float bounceAngle;
+    }
+    return velocity;
 }
 
 void breakoutDraw(void * state, int x, int y) {
@@ -349,6 +367,36 @@ void breakoutDraw(void * state, int x, int y) {
         mouseSreenX = 650;
     }
     breakout.breakout->platformX = mouseSreenX;
+    Rectangle ballRect = {breakout.breakout->ballPos.x+static_cast<float>(x),breakout.breakout->ballPos.y+static_cast<float>(y),10,10};
+    DrawRectanglePro(ballRect,Vector2{0,0},0,WHITE);
+
+    breakout.breakout->ballPos.x += breakout.breakout->ballVelocity.x;
+    breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+
+    // bounds check the ball
+     if (breakout.breakout->ballPos.x < 0 || breakout.breakout->ballPos.x > 800) {
+         breakout.breakout->ballVelocity.x *=-1;
+         breakout.breakout->ballPos.x += breakout.breakout->ballVelocity.x;
+     }
+     if (breakout.breakout->ballPos.y < 0 || breakout.breakout->ballPos.y > 450) {
+         breakout.breakout->ballVelocity.y *=-1;
+         breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+     }
+
+    //check paddle collisions
+    // if (breakout.breakout->ballPos.x-5 <= static_cast<float>(breakout.breakout->platformX)+150.0f &&
+    //     breakout.breakout->ballPos.x+5 >= static_cast<float>(breakout.breakout->platformX) &&
+    //     breakout.breakout->ballPos.y-10 <= 420 &&
+    //     breakout.breakout->ballPos.y+10 >= 400
+    //     ) {
+    //     breakout.breakout->ballVelocity.y *=-1;
+    //     breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+    // }
+    bool hitPadle = false;
+    breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},{static_cast<float>(breakout.breakout->platformX),400,150,20},breakout.breakout->ballVelocity,hitPadle);
+    if (hitPadle) {
+        breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+    }
 }
 
 
