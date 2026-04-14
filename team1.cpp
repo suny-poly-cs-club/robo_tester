@@ -1,7 +1,9 @@
 #include "team1.h"
 #include "include/raylib.h"
 #include <cstdlib>
-#include <iterator>
+
+// TODO: delete people when they get hit
+// TODO: figure out which line mouse clicks
 
 typedef struct {
   Vector2 start_point;
@@ -19,18 +21,13 @@ struct trolley_captcha_state {
 const int CAPTCHA_HEIGHT = 500;
 const int CAPTCHA_WIDTH = 600;
 
-float EaseCubicInOut(float t, float b, float c, float d)
-{
-    float result = 0.0f;
+float EaseCubicInOut(float t, float b, float c, float d) {
+  if ((t /= 0.5f*d) < 1) {
+    return 0.5f*c*t*t*t + b;
+  }
 
-    if ((t /= 0.5f*d) < 1) result = 0.5f*c*t*t*t + b;
-    else
-    {
-        t -= 2;
-        result = 0.5f*c*(t*t*t + 2.0f) + b;
-    }
-
-    return result;
+  t -= 2;
+  return 0.5f*c*(t*t*t + 2.0f) + b;
 }
 
 void *create_trolley_captcha() {
@@ -62,8 +59,6 @@ void draw_trolley_captcha(void *state, int x, int y) {
   auto *captchaState = (trolley_captcha_state *)state;
 
   ClearBackground(RAYWHITE);
-
-  // TODO: figure out how to put people on the lines
 
   int tracks = captchaState->tracks;
   float paddingPx = CAPTCHA_WIDTH * 0.125f;
