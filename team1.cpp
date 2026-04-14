@@ -132,17 +132,19 @@ void draw_trolley_captcha(void *state, int x, int y) {
 
   if (captchaState->animationState == ANIM_PLAYING) {
     if (captchaState->animationframe <= 120) {
-      float animationprogress = ((float)captchaState->animationframe/120);
+      for (int i = 0; i < 5 && i < (captchaState->animationframe / 5); i++){
+        float animationprogress = (((float)captchaState->animationframe - i * 5)/120);
 
-      float x1 = start.x;
-      float y1 = start.y;
-      float x2 = endanimation.x;
-      float y2 = endanimation.y;
+        float x1 = start.x;
+        float y1 = start.y;
+        float x2 = endanimation.x;
+        float y2 = endanimation.y;
 
-      float animationx = (endanimation.x - start.x) * animationprogress + start.x;
-      float animationy = EaseCubicInOut(animationprogress, y1, y2-y1, 1);
+        float animationx = (endanimation.x - start.x) * animationprogress + start.x;
+        float animationy = EaseCubicInOut(animationprogress, y1, y2-y1, 1);
 
-      DrawRectangle(animationx-8, animationy-8, 16, 16, RED);
+        DrawRectangle(animationx-8, animationy-8, 16, 16, GRAY);
+      }
 
       captchaState->animationframe++;
     } else {
