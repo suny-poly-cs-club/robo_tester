@@ -1,6 +1,7 @@
 #include "team2.h"
 
 #include "reaction.h"
+#include "waldo.h"
 
 
 //shark
@@ -236,7 +237,7 @@ std::vector<captchaInfo> team2_get_captchas() {
 
 
 
-        //teacton time
+        //reacton time
     {
             "Reaction Test",
             800,
@@ -246,6 +247,18 @@ std::vector<captchaInfo> team2_get_captchas() {
             &reaction_mouse_click_fn,
             &reaction_check_success_fn,
             &reaction_get_instructions_fn,
+        },
+
+        // Shoot Waldo
+        {
+            "Where's Waldo?",
+            175,
+            175,
+            &waldo_create_fn,
+            &waldo_draw_fn,
+            &waldo_mouse_click_fn,
+            &waldo_check_success_fn,
+            &waldo_get_instructions_fn,
         }
 
     };
