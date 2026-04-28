@@ -1,8 +1,17 @@
 #include "team2.h"
-
+#include <iostream> //cout
+#include "include/raylib.h"
+#include <vector>
+#include "shark.h"
 #include "reaction.h"
 #include "waldo.h"
+#include "raymath.h"
 
+using namespace std;
+
+//prototypes
+
+//consts
 
 //shark
 
@@ -23,10 +32,22 @@ struct stockMarketState {
     int ownedStock3{};
     int netProfit{};
 };
+struct breakoutState {
+    int platformX;
+    Vector2 ballPos;
+    Vector2 ballVelocity;
+    unsigned int row4;
+    unsigned int row3;
+    unsigned int row2;
+    unsigned int row1;
+    unsigned int row5;
+
+};
 
 union ezAutoCasting {
     void * in;
     stockMarketState * stock;
+    breakoutState * breakout;
 };
 
 void * stockMarketCreate() {
@@ -209,11 +230,276 @@ std::string stockMarketGetInstructions(void * state) {
     return "Make $500 in the socket market";
 }
 
-//harm the huma
+//harm the human
+//variables
+Texture car;
+Texture human;
+Texture road;
+Sound drivingInMyCar;
+Texture truck;
+Image truckAnimationImage;
+int numberOfTruckFrames;
+bool hthLoadded = false;
 
+struct harmHumanState{
+    //variables to hold state information
+    int humanLocation;
+    int possiblePositions[3];
+    bool animationIsRunning;
+    int frames;
+    int frameWeight;
+};
+
+void * harmHuamnCreate(){
+    //allocates strutcure and initalize variables
+    //If this is the first time this function is called, load the assets
+    if(!hthLoadded){
+        car = LoadTexture("assets/team2/BMWcarWindow.png");
+        human = LoadTexture("assets/team2/FuckingFatass.png");
+        road = LoadTexture("assets/team2/Road.png");
+        drivingInMyCar = LoadSound("assets/team2/DrivingInMyCar.mp3");
+        truckAnimationImage = LoadImageAnim("assets/team2/asgoreTruck.gif", &numberOfTruckFrames);
+        truck = LoadTextureFromImage(truckAnimationImage);
+        hthLoadded = true;
+    }
+    void * memBlock = malloc(sizeof(harmHumanState));
+        harmHumanState * state = (harmHumanState*)memBlock;
+        state->humanLocation = GetRandomValue(0,2);
+        state->animationIsRunning = false;
+        state->frames = 0;
+        state->frameWeight = 0;
+        PlaySound(drivingInMyCar);
+    return memBlock;
+}
+
+void harmHumanDraw(void * state, int x, int y){
+    //passes the state in every frame, x & y is within the captcha window
+    auto * human_state = (harmHumanState*)state;
+    int possiblePositions[3] = {x+75,x+195,x+325};
+    int pos = possiblePositions[human_state->humanLocation];
+
+    DrawTexturePro(road,{0,0, (float)road.width, (float)road.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+    DrawTexturePro(human,{0,0, (float)human.width, (float)human.height},{(float)pos, (float)y, 100, 100}, {0, 0}, 0, WHITE);
+    DrawTexturePro(car,{0,0, (float)car.width, (float)car.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+    if(!IsSoundPlaying(drivingInMyCar)){
+        PlaySound(drivingInMyCar);
+    }
+    if(human_state->animationIsRunning){
+        DrawTexturePro(truck,{0,0, (float)truck.width, (float)truck.height},{(float)x, (float)y, 500, 500}, {0, 0}, 0, WHITE);
+        human_state->frameWeight++;
+        if(human_state->frameWeight % 2 == 0){
+            human_state->frames = (human_state->frames + 1) % numberOfTruckFrames;
+            UpdateTexture(truck, (unsigned char*)truckAnimationImage.data + (truckAnimationImage.width * truckAnimationImage.height * 4 * human_state->frames));
+        }
+    }
+}
+
+void harmHumanMouseCLicked(void * state, int button, int mouseX, int mouseY){
+    //if the user clicks the mouse within the area, call it
+    //x & y are within the captcha window
+    auto * human_state = (harmHumanState*)state;
+    int possiblePositions[3] = {75, 195, 325};
+    int pos = possiblePositions[human_state->humanLocation];
+    if(mouseX >= pos-60 && mouseX <= pos+60){
+        cout<<"Current value of animationIsRunning: "<<human_state->animationIsRunning<<endl;
+        if (!human_state->animationIsRunning){
+            human_state->animationIsRunning = true;
+            human_state->frames = 0;
+            cout<<"clicked human"<<endl;
+        }
+    }
+}
+
+bool harmHumanCheckSuccess(void * state){
+    auto human_state = (harmHumanState*)state;
+    if(human_state->animationIsRunning){
+        StopSound(drivingInMyCar);
+        return true;
+        
+    }
+    return false;
+}
+
+std::string harmHumanGetInstructions(void * state){
+    //returns the instructions of the captcha
+    return "Choose the road with the human";
+}
+
+void play_music(){
+    // PlaySound(TEXT("DrivingInMyCar.mp3"), NULL, SND_SYNC);
+}
 
 
 //teacton time
+
+//break out
+
+void * createBreadkOut() {
+    void * bos = malloc(sizeof(breakoutState));
+    ezAutoCasting state;
+    state.in = bos;
+    state.breakout->platformX = 400;
+    state.breakout->ballPos = {475,375};
+    state.breakout->ballVelocity = {0,10};
+    state.breakout->row4 = ~(~0u<<10);
+    state.breakout->row3 = ~(~0u<<10);
+    state.breakout->row2 = ~(~0u<<10);
+    state.breakout->row1 = ~(~0u<<10);
+    state.breakout->row5 = ~(~0u<<10);
+
+    return bos;
+}
+
+Vector2 breakoutObjectBounce(Rectangle ball, Rectangle object, Vector2 velocity, bool& hit) {
+    hit = false;
+    if (ball.x <= object.x+object.width &&
+        ball.x+ball.width >= object.x &&
+        ball.y <= object.y+object.height &&
+        ball.y+ball.height >= object.y
+    ) {
+        hit = true;
+        bool onSide = false;
+        if (ball.x < object.x || ball.x > object.x+object.width) {
+            onSide = true;
+        }
+
+        if (onSide) {
+            return {velocity.x*-1,velocity.y};
+        } else {
+            bool below = ball.y >= object.y+object.height/2;
+            float ops = ball.x - object.x;
+            ops /= object.width;
+            ops = 1 - ops;
+            float angle = Lerp(-PI/6.0f,-5.0f*PI/6.0f,ops);
+            if (below) {
+                angle *= -1;
+            }
+
+            return Vector2Rotate({10,0},angle);
+        }
+    }
+    return velocity;
+}
+
+void breakoutDraw(void * state, int x, int y) {
+    ezAutoCasting breakout{};
+    breakout.in = state;
+
+    DrawRectangle(x,y,800,450,BLACK);//background
+
+    //paddle
+
+    DrawRectangle(x+breakout.breakout->platformX,y+400,150,20,BLUE);
+    int mouseSreenX = GetMouseX()-x;
+    if (mouseSreenX < 0) {
+        mouseSreenX = 0;
+    }
+    if (mouseSreenX > 650) {
+        mouseSreenX = 650;
+    }
+    breakout.breakout->platformX = mouseSreenX;
+    Rectangle ballRect = {breakout.breakout->ballPos.x+static_cast<float>(x),breakout.breakout->ballPos.y+static_cast<float>(y),10,10};
+    DrawRectanglePro(ballRect,Vector2{0,0},0,WHITE);
+
+    breakout.breakout->ballPos.x += breakout.breakout->ballVelocity.x;
+    breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+
+    // bounds check the ball
+     if (breakout.breakout->ballPos.x < 0 || breakout.breakout->ballPos.x > 800) {
+         breakout.breakout->ballVelocity.x *=-1;
+         breakout.breakout->ballPos.x += breakout.breakout->ballVelocity.x;
+     }
+     if (breakout.breakout->ballPos.y < 0 || breakout.breakout->ballPos.y > 450) {
+         breakout.breakout->ballVelocity.y *=-1;
+         breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+     }
+
+    //check paddle collisions
+    bool hitPadle = false;
+    breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},{static_cast<float>(breakout.breakout->platformX),400,150,20},breakout.breakout->ballVelocity,hitPadle);
+    if (hitPadle) {
+        breakout.breakout->ballPos.y += breakout.breakout->ballVelocity.y;
+    }
+
+    //draw the rows
+    for (int i=0;i<10;i++) {
+        if (breakout.breakout->row4 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 50),76,20};
+            DrawRectangleRec(box,RED);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row4 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row3 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 80),76,20};
+            DrawRectangleRec(box,ORANGE);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row3 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row2 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 110),76,20};
+            DrawRectangleRec(box,YELLOW);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row2 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row1 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 140),76,20};
+            DrawRectangleRec(box,GREEN);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row1 &= ~(1<<i);
+            }
+        }
+        if (breakout.breakout->row5 & (1<<i)) {
+            Rectangle box{static_cast<float>(x + 80 * i+2),static_cast<float>(y + 170),76,20};
+            DrawRectangleRec(box,DARKBLUE);
+            //check collision
+            bool hit;
+            box.x -= static_cast<float>(x);
+            box.y -= static_cast<float>(y);
+            breakout.breakout->ballVelocity = breakoutObjectBounce({breakout.breakout->ballPos.x-5,breakout.breakout->ballPos.y-5,10,10},box,breakout.breakout->ballVelocity,hit);
+            if (hit) {
+                breakout.breakout->row5 &= ~(1<<i);
+            }
+        }
+    }
+}
+
+
+void breakoutMouseClicked(void * state, int button, int x, int y) {
+
+}
+
+bool breakoutCheckSuccess(void * state) {
+    ezAutoCasting data{};
+    data.in = state;
+    return !(data.breakout->row1 || data.breakout->row2 || data.breakout->row3 || data.breakout->row4 || data.breakout->row5);
+}
+
+std::string breakoutInstructions(void * state) {
+    return "Breakout!    Clear the screen";
+}
 
 
 
@@ -221,6 +507,15 @@ std::string stockMarketGetInstructions(void * state) {
 std::vector<captchaInfo> team2_get_captchas() {
     return {
         //shark
+        {
+            "shark",
+            500, 500,
+            &shark_create_fn,
+            &shark_draw_fn,
+            &shark_mouse_click_fn,
+            &shark_check_success_fn,
+            &shark_get_instructions_fn,
+        },
 
         //stock market
         {
@@ -233,7 +528,17 @@ std::vector<captchaInfo> team2_get_captchas() {
             &stockMarketGetInstructions,//instructions function
         },
 
-        //harm the huma
+        //harm the human
+        {
+            "Harm the human",
+            500,
+            500,
+            &harmHuamnCreate,
+            &harmHumanDraw,
+            &harmHumanMouseCLicked,
+            &harmHumanCheckSuccess,
+            &harmHumanGetInstructions
+        },
 
 
 
@@ -259,7 +564,21 @@ std::vector<captchaInfo> team2_get_captchas() {
             &waldo_mouse_click_fn,
             &waldo_check_success_fn,
             &waldo_get_instructions_fn,
+        },
+
+        //break out
+        {
+            "Break out",
+            800,
+            450,
+            &createBreadkOut,
+            &breakoutDraw,
+            &breakoutMouseClicked,
+            &breakoutCheckSuccess,
+            &breakoutInstructions
         }
+
+        //other
 
     };
 }
