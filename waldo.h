@@ -33,12 +33,12 @@ void * waldo_create_fn() {
 
     // Draw stuff.
     for (int i = 0; i < 1'000; i++) {
-        const Color c(
-            GetRandomValue(0, 255),
-            GetRandomValue(0, 255),
-            GetRandomValue(0, 255),
-            GetRandomValue(200, 225)
-        );
+        const Color c = {
+            static_cast<unsigned char>(GetRandomValue(0, 255)),
+            static_cast<unsigned char>(GetRandomValue(0, 255)),
+            static_cast<unsigned char>(GetRandomValue(0, 255)),
+            static_cast<unsigned char>(GetRandomValue(200, 225))
+        };
         if (GetRandomValue(0, 1) == 0) {
             const auto r = GetRandomValue(0, 100);
             DrawCircle(
@@ -81,9 +81,9 @@ void waldo_draw_fn(void * _state, int x, int y) {
     state->win_y = y;
     DrawTexturePro(
         state->texture.texture,
-        Rectangle(x, - y - WINDOW_HEIGHT, WINDOW_WIDTH, -WINDOW_HEIGHT),
-        Rectangle(x, y, WINDOW_WIDTH, WINDOW_HEIGHT),
-        Vector2(0, 0),
+        {(float)x, (float)(- y - WINDOW_HEIGHT), WINDOW_WIDTH, -WINDOW_HEIGHT},
+        {(float)x, (float)y, WINDOW_WIDTH, WINDOW_HEIGHT},
+        {0, 0},
         0.0f,
         WHITE
     );
