@@ -18,3 +18,4 @@ build/
 Debug/
 Release/
 robo_test
+*.o
